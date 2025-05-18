@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tablet Straży Miejskiej</title>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+
+<style>
+  body {
+    background-color: #e9ecef;
+    font-family: 'Arial', sans-serif;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 30px 0 10px;
+    color: #0069d9;
+    font-weight: bold;
+  }
+
+  #appContainer {
+    display: none;
+  }
+
+  #loginContainer {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  /* Modal do kodu PIN */
+  #pinModal .modal-dialog {
+    max-width: 400px;
+  }
+  
+  /* Ukrycie głównego menu do czasu zalogowania i potwierdzenia PIN */
+  .hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Tablet Straży Miejskiej</h1>
+</div>
+
+<!-- Logowanie -->
+<div id="loginContainer">
+  <div class="card shadow-sm p-4">
+    <h4 class="text-center mb-4">Zaloguj się</h4>
+    <div class="mb-3">
+      <label for="loginInput" class="form-label">Login</label>
+      <input type="text" id="loginInput" class="form-control" placeholder="Login" />
+    </div>
+    <div class="mb-3">
+      <label for="passwordInput" class="form-label">Hasło</label>
+      <input type="password" id="passwordInput" class="form-control" placeholder="Hasło" />
+    </div>
+    <button class="btn btn-primary btn-custom" onclick="zaloguj()"><i class="bi bi-box-arrow-in-right"></i> Zaloguj się</button>
+  </div>
+</div>
+
+<!-- Główne UI, ukryte domyślnie -->
+<div id="mainContent" class="container mt-4 hidden">
+
+<!-- Nawigacja -->
+<ul class="nav nav-tabs justify-content-center mb-4" id="categoryTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="mandaty-tab" data-bs-toggle="tab" data-bs-target="#mandaty" type="button" role="tab" aria-controls="mandaty" aria-selected="true" onclick="showTab('mandaty')">
+      <i class="bi bi-coin"></i> Mandaty
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="wyroki-tab" data-bs-toggle="tab" data-bs-target="#wyroki" type="button" role="tab" aria-controls="wyroki" aria-selected="false" onclick="showTab('wyroki')">
+      <i class="bi bi-file-earmark-text"></i> Wyroki
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="obywatele-tab" data-bs-toggle="tab" data-bs-target="#obywatele" type="button" role="tab" aria-controls="obywatele" aria-selected="false" onclick="showTab('obywatele')">
+      <i class="bi bi-people"></i> Obywatele
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="poszukiwane-tab" data-bs-toggle="tab" data-bs-target="#poszukiwane" type="button" role="tab" aria-controls="poszukiwane" aria-selected="false" onclick="showTab('poszukiwane')">
+      <i class="bi bi-car-front"></i> Poszukiwane pojazdy
+    </button>
+  </li>
+  <li class="nav-item ms-auto">
+    <button class="btn btn-danger btn-sm" onclick="wyloguj()"><i class="bi bi-box-arrow-right"></i> Wyloguj</button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- Mandaty -->
+  <div class="tab-pane fade show active" id="mandaty" role="tabpanel" aria-labelledby="mandaty-tab">
+    <h5 class="section-title"><i class="bi bi-plus-circle"></i> Dodaj mandat</h5>
+    <div class="card p-3 mb-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="mandatObywatel" class="form-label">Obywatel</label>
+          <select class="form-select" id="mandatObywatel"></select>
+        </div>
+        <div class="col-md-3">
+          <label for="mandatKwota" class="form-label">Kwota</label>
+          <input type="number" class="form-control" id="mandatKwota" placeholder="np. 200" />
+        </div>
+        <div class="col-md-3">
+          <label for="mandatData" class="form-label">Data</label>
+          <input type="date" class="form-control" id="mandatData" />
+        </div>
+        <div class="col-md-6">
+          <label for="mandatPowod" class="form-label">Powód zatrzymania</label>
+          <input type="text" class="form-control" id="mandatPowod" placeholder="np. Prowadzenie po alkoholu" />
+        </div>
+        <div class="col-md-6">
+          <label for="mandatCzasZaplaty" class="form-label">Czas zapłaty mandatu</label>
+          <input type="date" class="form-control" id="mandatCzasZaplaty" />
+        </div>
+        <div class="col-md-12 mt-2">
+          <label for="mandatFunkcjonariusz" class="form-label">Funkcjonariusz wpisujący</label>
+          <input type="text" class="form-control" id="mandatFunkcjonariusz" placeholder="np. Jan Nowak" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-custom mt-3" onclick="dodajMandat()"><i class="bi bi-plus-lg"></i> Dodaj mandat</button>
+    </div>
+    <h5 class="section-title"><i class="bi bi-card-list"></i> Lista mandatów</h5>
+    <ul class="list-group" id="listaMandatow"></ul>
+  </div>
+
+  <!-- Wyroki -->
+  <div class="tab-pane fade" id="wyroki" role="tabpanel" aria-labelledby="wyroki-tab">
+    <h5 class="section-title"><i class="bi bi-file-earmark-text"></i> Dodaj wyrok</h5>
+    <div class="card p-3 mb-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="wyrokObywatel" class="form-label">Obywatel</label>
+          <select class="form-select" id="wyrokObywatel"></select>
+        </div>
+        <div class="col-md-3">
+          <label for="wyrokKara" class="form-label">Kara</label>
+          <input type="text" class="form-control" id="wyrokKara" placeholder="np. Grzywna" />
+        </div>
+        <div class="col-md-3">
+          <label for="wyrokData" class="form-label">Data</label>
+          <input type="date" class="form-control" id="wyrokData" />
+        </div>
+        <div class="col-md-12 mt-2">
+          <label for="wyrokFunkcjonariusz" class="form-label">Funkcjonariusz wpisujący</label>
+          <input type="text" class="form-control" id="wyrokFunkcjonariusz" placeholder="np. Jan Nowak" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-custom mt-3" onclick="dodajWyrok()"><i class="bi bi-plus-lg"></i> Dodaj wyrok</button>
+    </div>
+    <h5 class="section-title"><i class="bi bi-card-list"></i> Lista wyroków</h5>
+    <ul class="list-group" id="listaWyrokow"></ul>
+  </div>
+
+  <!-- Obywatele -->
+  <div class="tab-pane fade" id="obywatele" role="tabpanel" aria-labelledby="obywatele-tab">
+    <h5 class="section-title"><i class="bi bi-people"></i> Dodaj obywatela</h5>
+    <div class="card p-3 mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="obywatelImie" class="form-label">Imię</label>
+          <input type="text" class="form-control" id="obywatelImie" placeholder="np. Jan" />
+        </div>
+        <div class="col-md-4">
+          <label for="obywatelNazwisko" class="form-label">Nazwisko</label>
+          <input type="text" class="form-control" id="obywatelNazwisko" placeholder="np. Kowalski" />
+        </div>
+        <div class="col-md-4">
+          <label for="obywatelWiek" class="form-label">Wiek</label>
+          <input type="number" class="form-control" id="obywatelWiek" placeholder="np. 30" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-custom mt-3" onclick="dodajObywatela()"><i class="bi bi-plus-lg"></i> Dodaj obywatela</button>
+    </div>
+    <h5 class="section-title"><i class="bi bi-people"></i> Lista obywateli</h5>
+    <ul class="list-group" id="listaObywateli"></ul>
+  </div>
+
+  <!-- Poszukiwane pojazdy -->
+  <div class="tab-pane fade" id="poszukiwane" role="tabpanel" aria-labelledby="poszukiwane-tab">
+    <h5 class="section-title"><i class="bi bi-car-front"></i> Dodaj poszukiwany pojazd</h5>
+    <div class="card p-3 mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="pojazdMarka" class="form-label">Marka</label>
+          <input type="text" class="form-control" id="pojazdMarka" placeholder="np. Toyota" />
+        </div>
+        <div class="col-md-4">
+          <label for="pojazdModel" class="form-label">Model</label>
+          <input type="text" class="form-control" id="pojazdModel" placeholder="np. Corolla" />
+        </div>
+        <div class="col-md-4">
+          <label for="pojazdRej" class="form-label">Numer rejestracyjny</label>
+          <input type="text" class="form-control" id="pojazdRej" placeholder="np. ABC123" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-custom mt-3" onclick="dodajPoszukiwany()"><i class="bi bi-plus-lg"></i> Dodaj pojazd</button>
+    </div>
+    <h5 class="section-title"><i class="bi bi-car-front"></i> Lista poszukiwanych pojazdów</h5>
+    <ul class="list-group" id="listaPoszukiwanych"></ul>
+  </div>
+
+</div>
+</div>
+
+<!-- Modal do kodu PIN -->
+<div class="modal fade" id="pinModal" tabindex="-1" aria-labelledby="pinModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-4">
+      <h5 class="modal-title mb-3" id="pinModalLabel">Podaj kod PIN (1111)</h5>
+      <input type="password" id="pinInput" class="form-control" placeholder="Kod PIN" />
+      <div class="mt-3 d-flex justify-content-end">
+        <button class="btn btn-primary" onclick="sprawdzPin()">Potwierdź</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Skrypt -->
+<script>
+  // Użytkownicy (login, hasło)
+  const users = [
+    {login: 'admin', password: 'admin123'},
+    {login: 'Oskar', password: 'Kacprzak'},
+    {login: 'uzytk2', password: 'haslo2'}
+  ];
+
+  let obywatele = [];
+  let mandaty = [];
+  let wyroki = [];
+  let poszukiwanePojazdy = [];
+
+  let zalogowanyUser = null;
+
+  // Funkcja logowania
+  function zaloguj() {
+    const login = document.getElementById('loginInput').value.trim();
+    const haslo = document.getElementById('passwordInput').value.trim();
+    const user = users.find(u => u.login === login && u.password === haslo);
+    if(user) {
+      // Ustaw użytkownika i pokaż modal z PIN-em
+      zalogowanyUser = user;
+      $('#pinModal').modal('show');
+    } else {
+      alert('Niepoprawny login lub hasło');
+    }
+  }
+
+  // Sprawdzenie PIN
+  function sprawdzPin() {
+    const pin = document.getElementById('pinInput').value.trim();
+    if(pin === '1111') {
+      $('#pinModal').modal('hide');
+      // Ukryj logowanie i pokaż główną część
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('mainContent').classList.remove('hidden');
+      odswiezObywateli();
+      odswiezMandaty();
+      odswiezWyroki();
+      odswiezPoszukiwane();
+    } else {
+      alert('Niepoprawny kod PIN');
+    }
+  }
+
+  function wyloguj() {
+    // Wyloguj i ukryj główny ekran, pokaż login
+    zalogowanyUser = null;
+    document.getElementById('loginContainer').style.display = 'block';
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('loginInput').value = '';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('pinInput').value = '';
+  }
+
+  // Funkcje odświeżania list
+  function odswiezObywateli() {
+    const container = document.getElementById('listaObywateli');
+    container.innerHTML = '';
+    obywatele.forEach((o, index) => {
+      container.innerHTML += `<li class="list-group-item">
+        <div>
+          <strong>${o.imie} ${o.nazwisko}</strong> (Wiek: ${o.wiek})
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="usunObywatela(${index})"><i class="bi bi-trash"></i></button>
+      </li>`;
+    });
+    uzupełnijSelects();
+  }
+
+  function odswiezMandaty() {
+    const container = document.getElementById('listaMandatow');
+    container.innerHTML = '';
+    mandaty.forEach(m => {
+      const obywatel = obywatele[m.obywatelIndex];
+      container.innerHTML += `<li class="list-group-item">
+        <div>
+          <strong>${obywatel ? obywatel.imie + ' ' + obywatel.nazwisko : 'Obywatel nieznany'}</strong><br>
+          Kwota: ${m.kwota} zł | Data: ${m.data}<br>
+          Powód: ${m.powod || 'Brak'}<br>
+          Czas zapłaty: ${m.czasZaplaty || 'Brak'}<br>
+          <small>Wpisujący: ${m.funkcjonariusz || 'Brak'}</small>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="usunMandat(${m.id})"><i class="bi bi-trash"></i></button>
+      </li>`;
+    });
+  }
+
+  function odswiezWyroki() {
+    const container = document.getElementById('listaWyrokow');
+    container.innerHTML = '';
+    wyroki.forEach(w => {
+      const obywatel = obywatele[w.obywatelIndex];
+      container.innerHTML += `<li class="list-group-item">
+        <div>
+          <strong>${obywatel ? obywatel.imie + ' ' + obywatel.nazwisko : 'Obywatel nieznany'}</strong><br>
+          Kara: ${w.kara} | Data: ${w.data}<br>
+          <small>Wpisujący: ${w.funkcjonariusz || 'Brak'}</small>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="usunWyrok(${w.id})"><i class="bi bi-trash"></i></button>
+      </li>`;
+    });
+  }
+
+  function odswiezPoszukiwane() {
+    const container = document.getElementById('listaPoszukiwanych');
+    container.innerHTML = '';
+    poszukiwanePojazdy.forEach((p, index) => {
+      container.innerHTML += `<li class="list-group-item">
+        <div>
+          ${p.marka} ${p.model} - Rej: ${p.numerRej}
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="usunPoszukiwany(${index})"><i class="bi bi-trash"></i></button>
+      </li>`;
+    });
+  }
+
+  // Funkcje dodawania
+  function dodajObywatela() {
+    const imie = document.getElementById('obywatelImie').value.trim();
+    const nazwisko = document.getElementById('obywatelNazwisko').value.trim();
+    const wiek = parseInt(document.getElementById('obywatelWiek').value);
+    if(imie && nazwisko && wiek) {
+      obywatele.push({imie, nazwisko, wiek});
+      odswiezObywateli();
+      document.getElementById('obywatelImie').value = '';
+      document.getElementById('obywatelNazwisko').value = '';
+      document.getElementById('obywatelWiek').value = '';
+    } else {
+      alert('Uzupełnij wszystkie pola');
+    }
+  }
+
+  function dodajMandat() {
+    const obywatelIndex = document.getElementById('mandatObywatel').value;
+    const kwota = parseFloat(document.getElementById('mandatKwota').value);
+    const data = document.getElementById('mandatData').value;
+    const powod = document.getElementById('mandatPowod').value.trim();
+    const czasZaplaty = document.getElementById('mandatCzasZaplaty').value;
+    const funkcjonariusz = document.getElementById('mandatFunkcjonariusz').value.trim();
+
+    if(obywatelIndex !== '' && kwota > 0 && data && funkcjonariusz !== '') {
+      const id = Date.now();
+      mandaty.push({id, obywatelIndex: parseInt(obywatelIndex), kwota, data, powod, czasZaplaty, funkcjonariusz});
+      odswiezMandaty();
+      document.getElementById('mandatKwota').value = '';
+      document.getElementById('mandatData').value = '';
+      document.getElementById('mandatPowod').value = '';
+      document.getElementById('mandatCzasZaplaty').value = '';
+      document.getElementById('mandatFunkcjonariusz').value = '';
+    } else {
+      alert('Uzupełnij wszystkie pola poprawnie (w tym funkcjonariusz)');
+    }
+  }
+
+  function dodajWyrok() {
+    const obywatelIndex = document.getElementById('wyrokObywatel').value;
+    const kara = document.getElementById('wyrokKara').value.trim();
+    const data = document.getElementById('wyrokData').value;
+    const funkcjonariusz = document.getElementById('wyrokFunkcjonariusz').value.trim();
+
+    if(obywatelIndex !== '' && kara !== '' && data !== '' && funkcjonariusz !== '') {
+      const id = Date.now();
+      wyroki.push({id, obywatelIndex: parseInt(obywatelIndex), kara, data, funkcjonariusz});
+      odswiezWyroki();
+      document.getElementById('wyrokKara').value = '';
+      document.getElementById('wyrokData').value = '';
+      document.getElementById('wyrokFunkcjonariusz').value = '';
+    } else {
+      alert('Uzupełnij wszystkie pola poprawnie (w tym funkcjonariusz)');
+    }
+  }
+
+  function dodajPoszukiwany() {
+    const marka = document.getElementById('pojazdMarka').value.trim();
+    const model = document.getElementById('pojazdModel').value.trim();
+    const rej = document.getElementById('pojazdRej').value.trim();
+
+    if(marka && model && rej) {
+      poszukiwanePojazdy.push({marka, model, numerRej: rej});
+      odswiezPoszukiwane();
+      document.getElementById('pojazdMarka').value = '';
+      document.getElementById('pojazdModel').value = '';
+      document.getElementById('pojazdRej').value = '';
+    } else {
+      alert('Uzupełnij wszystkie pola');
+    }
+  }
+
+  // Usuwanie wpisów
+  function usunObywatela(index) {
+    obywatele.splice(index, 1);
+    odswiezObywateli();
+    odswiezMandaty();
+    odswiezWyroki();
+  }
+
+  function usunMandat(id) {
+    const index = mandaty.findIndex(m => m.id===id);
+    if(index !== -1) {
+      mandaty.splice(index, 1);
+      odswiezMandaty();
+    }
+  }
+
+  function usunWyrok(id) {
+    const index = wyroki.findIndex(w => w.id===id);
+    if(index !== -1) {
+      wyroki.splice(index, 1);
+      odswiezWyroki();
+    }
+  }
+
+  function usunPoszukiwany(index) {
+    poszukiwanePojazdy.splice(index, 1);
+    odswiezPoszukiwane();
+  }
+
+  function showTab(tabName) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+    document.getElementById(tabName).classList.add('show', 'active');
+  }
+
+  function uzupełnijSelects() {
+    const selectMandat = document.getElementById('mandatObywatel');
+    const selectWyrok = document.getElementById('wyrokObywatel');
+    selectMandat.innerHTML = '';
+    selectWyrok.innerHTML = '';
+    obywatele.forEach((o, index) => {
+      const option = `<option value="${index}">${o.imie} ${o.nazwisko}</option>`;
+      selectMandat.innerHTML += option;
+      selectWyrok.innerHTML += option;
+    });
+  }
+
+  // Automatyczne odświeżanie list po załadowaniu
+  window.onload = () => {
+    // Ukryj główną część do startu
+    document.getElementById('mainContent').classList.add('hidden');
+  };
+</script>
+
+<!-- Bootstrap JS + jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
